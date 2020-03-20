@@ -1,7 +1,6 @@
-set(SubProj "IntervalMap")
-
-add_executable(${SubProj} main.cpp)
+create_project(subProjName)
+add_executable(${subProjName} main.cpp)
 
 if(BUILD_TESTING)
-    package_add_test("${SubProj}Test" test.cpp)
+    package_add_test("${subProjName}Test" test.cpp)
 endif()
