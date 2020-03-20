@@ -1,5 +1,7 @@
-add_executable(IntervalMap main.cpp)
+set(SubProj "IntervalMap")
 
-if(TESTS STREQUAL "enabled")
-    add_executable(IntervalMapTest test.cpp)
+add_executable(${SubProj} main.cpp)
+
+if(BUILD_TESTING)
+    package_add_test("${SubProj}Test" test.cpp)
 endif()

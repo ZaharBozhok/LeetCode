@@ -1,7 +1,6 @@
-#include<iostream>
+#include <gtest/gtest.h>
 
-int main()
+TEST(HelloWorld, First1)
 {
-    std::cout << "I'm test " << std::endl;
-    return 0;
+    ASSERT_TRUE(true);
 }
