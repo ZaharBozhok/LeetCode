@@ -28,13 +28,7 @@ protected:
     {
         if (::testing::Test::HasFailure())
         {
-            auto min = std::numeric_limits<Key>::min();
-            auto max = std::numeric_limits<Key>::max();
-            std::cout << "min : " << (int)min << ", max : " << (int)max << std::endl;
-            for (auto i = min; i < max; i++)
-            {
-                std::cout << (int)i << ':' << m_map[i] << ' ';
-            }
+            ShowMapFromTill(m_map, std::numeric_limits<Key>::min(), 41);
         }
     }
     IntervalMap<uint8_t, char> m_map;
@@ -53,7 +47,7 @@ TEST_F(IntervalMapTest, FilledWithInitialValue)
 TEST_F(IntervalMapTest, SqueezeThrough)
 {
     const Key insertBegin = 10, insertEnd = 20;
-    Value insertVal = 'B';
+    Value insertVal = '*';
     m_map.assign(insertBegin, insertEnd, insertVal);
 
     RangeEqualsTo(m_map,
@@ -63,7 +57,7 @@ TEST_F(IntervalMapTest, SqueezeThrough)
     RangeEqualsTo(m_map,
                   insertBegin,
                   insertEnd,
-                  'B');
+                  insertVal);
     RangeEqualsTo(m_map,
                   insertEnd,
                   std::numeric_limits<Key>::max(),

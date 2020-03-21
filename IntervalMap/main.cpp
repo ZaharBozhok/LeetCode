@@ -2,7 +2,7 @@
 #include "IntervalMap.h"
 
 int main() {
-  IntervalMap<unsigned int, char> imap{'a'};
-  imap.assign(5, 10, 'b');
-  std::cout << imap[5] << std::endl;
+  IntervalMap<unsigned int, char> m{'a'};
+  m.assign(5, 10, 'b');
+  ShowMapFromTill(m, 0, 20);
 }

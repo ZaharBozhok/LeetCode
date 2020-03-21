@@ -4,6 +4,23 @@
 #include <iterator>
 #include <limits>
 #include <map>
+#include <iomanip>
+#include <iostream>
+
+template<class Map>
+void ShowMapFromTill(const Map& map, const typename Map::kType& keyBegin, const typename Map::kType& keyEnd)
+{
+  for(auto i=keyBegin; i<keyEnd; i++)
+  {
+    std::cout << std::setw(2) << map[i] << ' ';
+  }
+  std::cout << std::endl;
+  for(auto i=keyBegin; i<keyEnd; i++)
+  {
+    std::cout << std::setw(2) << (int)i << ' ';
+  }
+  std::cout << std::endl;
+}
 
 template <class K, class V>
 class IntervalMap
