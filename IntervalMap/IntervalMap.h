@@ -25,7 +25,20 @@ public:
     return it->second;
   }
 
-  void assign(K const &keyBegin, K const &keyEnd, V const &val) {}
+  void assign(K const &keyBegin, K const &keyEnd, V const &val)
+  {
+    auto it = m_map.lower_bound(keyBegin);
+    if (it != m_map.cbegin())
+    {
+      it--;
+    }
+    if (it!= m_map.end())
+    {
+      auto prevVal = it->second;
+      m_map[keyBegin] = val;
+      m_map[keyEnd] = prevVal;
+    }
+  }
 
 private:
   std::map<K, V> m_map;

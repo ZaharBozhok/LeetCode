@@ -2,54 +2,70 @@
 #include <gtest/gtest.h>
 #include <limits>
 
-using K = uint8_t;
-
 template <class TMap>
-bool RangeEqualsTo(const TMap &map,
+void RangeEqualsTo(const TMap &map,
                    const typename TMap::kType &begin,
                    const typename TMap::kType &end,
                    const typename TMap::vType &val)
 {
-    for (auto i = begin; i < end; i++)
+    for (auto i = begin; i < end - 1; i++)
     {
-        if (map[i] != val)
-            return false;
+        ASSERT_EQ(map[i], val) << "i = " << (int)i;
     }
-    return true;
 }
 
-TEST(IntervalMap, FilledWithInitialValue)
+const char initialValue = 'A'; 
+
+class IntervalMapTest : public ::testing::Test
 {
-    IntervalMap<K, char> map('A');
-    ASSERT_TRUE(
-        RangeEqualsTo(map,
-                      std::numeric_limits<K>::min(),
-                      std::numeric_limits<K>::max(),
-                      'A'));
+public:
+    IntervalMapTest() : m_map(initialValue)
+    {
+    }
+
+protected:
+    void TearDown() override
+    {
+        if (::testing::Test::HasFailure())
+        {
+            auto min = std::numeric_limits<Key>::min();
+            auto max = std::numeric_limits<Key>::max();
+            std::cout << "min : " << (int)min << ", max : " << (int)max << std::endl;
+            for (auto i = min; i < max; i++)
+            {
+                std::cout << (int)i << ':' << m_map[i] << ' ';
+            }
+        }
+    }
+    IntervalMap<uint8_t, char> m_map;
+    using Key = decltype(m_map)::kType;
+    using Value = decltype(m_map)::vType;
+};
+
+TEST_F(IntervalMapTest, FilledWithInitialValue)
+{
+    RangeEqualsTo(m_map,
+                  std::numeric_limits<Key>::min(),
+                  std::numeric_limits<Key>::max(),
+                  initialValue);
 }
 
-TEST(IntervalMap, SqueezeThrough)
+TEST_F(IntervalMapTest, SqueezeThrough)
 {
-    char initialVal = 'A';
-    IntervalMap<K, decltype(initialVal)> map(initialVal);
+    const Key insertBegin = 10, insertEnd = 20;
+    Value insertVal = 'B';
+    m_map.assign(insertBegin, insertEnd, insertVal);
 
-    const K insertBegin = 10, insertEnd = 20;
-    const decltype(initialVal) insertVal = 'B';
-    map.assign(insertBegin, insertEnd, insertVal);
-
-    ASSERT_TRUE(
-        RangeEqualsTo(map,
-                      std::numeric_limits<K>::min(),
-                      insertBegin,
-                      initialVal));
-    ASSERT_TRUE(
-        RangeEqualsTo(map,
-                      insertBegin,
-                      insertEnd,
-                      insertVal));
-    ASSERT_TRUE(
-        RangeEqualsTo(map,
-                      insertEnd,
-                      std::numeric_limits<K>::max(),
-                      initialVal));
+    RangeEqualsTo(m_map,
+                  std::numeric_limits<Key>::min(),
+                  insertBegin,
+                  initialValue);
+    RangeEqualsTo(m_map,
+                  insertBegin,
+                  insertEnd,
+                  'B');
+    RangeEqualsTo(m_map,
+                  insertEnd,
+                  std::numeric_limits<Key>::max(),
+                  initialValue);
 }
