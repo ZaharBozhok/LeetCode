@@ -125,6 +125,16 @@ TEST_F(IntervalMapTest, InsertPoint)
     RangeEqualsTo(m_map, 1, 2, insertVal);
 }
 
+TEST_F(IntervalMapTest, FullElimination)
+{
+    m_map.assign(10, 20, '*');
+    m_map.assign(9, 21, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9 ,initialValue);
+    RangeEqualsTo(m_map, 9, 21,'X');
+    RangeEqualsTo(m_map, 21, std::numeric_limits<Key>::max(),initialValue);
+}
+
 /* It should have tested full range filling, but it is impossible using this scheme [a,b) */
 TEST_F(IntervalMapTest, DISABLED_FullBomb)
 {
