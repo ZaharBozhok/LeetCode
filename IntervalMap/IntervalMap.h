@@ -48,16 +48,17 @@ public:
     {
       return;
     }
-    auto it = m_map.lower_bound(keyBegin);
-    if (it != m_map.cbegin())
+    auto left = m_map.lower_bound(keyBegin);
+    
+    if (left != m_map.cbegin())
     {
-      it--;
+      left--;
     }
-    if (it!= m_map.end())
+    if (left!= m_map.cend())
     {
-      auto prevVal = it->second;
+      auto leftPrev = left->second;
       m_map[keyBegin] = val;
-      m_map[keyEnd] = prevVal;
+      m_map[keyEnd] = leftPrev;
     }
   }
 

@@ -8,13 +8,13 @@ void RangeEqualsTo(const TMap &map,
                    const typename TMap::kType &end,
                    const typename TMap::vType &val)
 {
-    for (auto i = begin; i < end - 1; i++)
+    for (auto i = begin; i < end; i++)
     {
         ASSERT_EQ(map[i], val) << "i = " << (int)i;
     }
 }
 
-const char initialValue = 'A'; 
+const char initialValue = 'A';
 
 class IntervalMapTest : public ::testing::Test
 {
@@ -96,9 +96,21 @@ TEST_F(IntervalMapTest, SqueezeThroughRight)
                   insertVal);
 }
 
+TEST_F(IntervalMapTest, SqueezeThroughThrough)
+{
+    m_map.assign(10, 20, '*');
+    m_map.assign(13, 17, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, 10, 13,'*');
+    RangeEqualsTo(m_map, 13, 17,'X');
+    RangeEqualsTo(m_map, 17, 20,'*');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+}
+
 TEST_F(IntervalMapTest, ReversedParametersDoNothing)
 {
-    m_map.assign('*', 20, 10);
+    m_map.assign(20, 10, '*');
 
     RangeEqualsTo(m_map,
                   std::numeric_limits<Key>::min(),
@@ -106,3 +118,21 @@ TEST_F(IntervalMapTest, ReversedParametersDoNothing)
                   initialValue);
 }
 
+TEST_F(IntervalMapTest, InsertPoint)
+{
+    Value insertVal = '*';
+    m_map.assign(1, 2, insertVal);
+    RangeEqualsTo(m_map, 1, 2, insertVal);
+}
+
+/* It should have tested full range filling, but it is impossible using this scheme [a,b) */
+TEST_F(IntervalMapTest, DISABLED_FullBomb)
+{
+    Value insertVal = '*';
+    m_map.assign(std::numeric_limits<Key>::min(), std::numeric_limits<Key>::max(), insertVal);
+    RangeEqualsTo(m_map,
+                  std::numeric_limits<Key>::min(),
+                  std::numeric_limits<Key>::max(),
+                  insertVal);
+    std::cout << m_map[std::numeric_limits<Key>::max()] << std::endl;
+}
