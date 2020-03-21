@@ -63,3 +63,19 @@ TEST_F(IntervalMapTest, SqueezeThrough)
                   std::numeric_limits<Key>::max(),
                   initialValue);
 }
+
+TEST_F(IntervalMapTest, SqueezeThroughLeft)
+{
+    const Key insertBegin = std::numeric_limits<Key>::min(), insertEnd = 10;
+    Value insertVal = '*';
+    m_map.assign(insertBegin, insertEnd, insertVal);
+
+    RangeEqualsTo(m_map,
+                  insertBegin,
+                  insertEnd,
+                  insertVal);
+    RangeEqualsTo(m_map,
+                  insertEnd,
+                  std::numeric_limits<Key>::max(),
+                  initialValue);
+}
