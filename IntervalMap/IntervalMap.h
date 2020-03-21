@@ -44,6 +44,10 @@ public:
 
   void assign(K const &keyBegin, K const &keyEnd, V const &val)
   {
+    if(keyBegin > keyEnd)
+    {
+      return;
+    }
     auto it = m_map.lower_bound(keyBegin);
     if (it != m_map.cbegin())
     {
