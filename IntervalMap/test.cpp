@@ -183,6 +183,20 @@ TEST_F(IntervalMapTest, PreciseRampage)
     RangeEqualsTo(m_map, 35, std::numeric_limits<Key>::max(),initialValue);
 }
 
+TEST_F(IntervalMapTest, Rampage)
+{
+    m_map.assign(5, 10, 'A');
+    m_map.assign(10, 15, 'B');
+    m_map.assign(17, 23, 'C');
+    m_map.assign(25, 30, 'D');
+    m_map.assign(30, 35, 'E');
+    m_map.assign(4, 36, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 4 ,initialValue);
+    RangeEqualsTo(m_map, 4, 36, 'X');
+    RangeEqualsTo(m_map, 36, std::numeric_limits<Key>::max(),initialValue);
+}
+
 /* It should have tested full range filling, but it is impossible using this scheme [a,b) */
 TEST_F(IntervalMapTest, DISABLED_FullBomb)
 {
