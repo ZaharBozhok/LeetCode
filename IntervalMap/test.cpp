@@ -125,15 +125,6 @@ TEST_F(IntervalMapTest, InsertPoint)
     RangeEqualsTo(m_map, 1, 2, insertVal);
 }
 
-TEST_F(IntervalMapTest, FullElimination)
-{
-    m_map.assign(10, 20, '*');
-    m_map.assign(9, 21, 'X');
-
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9 ,initialValue);
-    RangeEqualsTo(m_map, 9, 21,'X');
-    RangeEqualsTo(m_map, 21, std::numeric_limits<Key>::max(),initialValue);
-}
 
 TEST_F(IntervalMapTest, Neighbours)
 {
@@ -158,16 +149,38 @@ TEST_F(IntervalMapTest, CloseNeighbours)
     RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
 }
 
-TEST_F(IntervalMapTest, DISABLED_FullElimination)
+TEST_F(IntervalMapTest, FullElimination)
 {
-    m_map.assign(10, 14, 'A');
-    m_map.assign(15, 19, 'B');
-    m_map.assign(20, 24, 'C');
-    m_map.assign(25, 29, 'D');
+    m_map.assign(10, 20, '*');
+    m_map.assign(9, 21, 'X');
 
     RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9 ,initialValue);
     RangeEqualsTo(m_map, 9, 21,'X');
     RangeEqualsTo(m_map, 21, std::numeric_limits<Key>::max(),initialValue);
+}
+
+TEST_F(IntervalMapTest, PreciseFullElimination)
+{
+    m_map.assign(10, 20, '*');
+    m_map.assign(10, 20, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9 ,initialValue);
+    RangeEqualsTo(m_map, 10, 20,'X');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+}
+
+TEST_F(IntervalMapTest, PreciseRampage)
+{
+    m_map.assign(5, 10, 'A');
+    m_map.assign(10, 15, 'B');
+    m_map.assign(17, 23, 'C');
+    m_map.assign(25, 30, 'D');
+    m_map.assign(30, 35, 'E');
+    m_map.assign(5, 35, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 5 ,initialValue);
+    RangeEqualsTo(m_map, 5, 35, 'X');
+    RangeEqualsTo(m_map, 35, std::numeric_limits<Key>::max(),initialValue);
 }
 
 /* It should have tested full range filling, but it is impossible using this scheme [a,b) */
