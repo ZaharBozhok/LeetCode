@@ -373,12 +373,86 @@ TEST(HasDoubles, FalseOnNoDoubles)
 
 #include <cstdlib>
 #include <ctime>
+
+TEST_F(IntervalMapTest, FailedRandom1)
+{
+    m_map.assign(0, 25, 'B');
+    m_map.assign(4, 8, 'B');
+    m_map.assign(5, 8, 'E');
+    m_map.assign(25, 31, 'C');
+    m_map.assign(14, 27, 'F');
+    m_map.assign(6, 39, 'A');
+    m_map.assign(15, 18, 'C');
+    m_map.assign(7, 23, 'E');
+    m_map.assign(16, 23, 'B');
+    m_map.assign(5, 34, 'B');
+    ASSERT_FALSE(HasDoubles(m_map.getMap()));
+}
+
+TEST_F(IntervalMapTest, FailedRandom2)
+{
+    m_map.assign(38, 39, 'B');
+    m_map.assign(12, 39, 'F');
+    m_map.assign(26, 38, 'C');
+    m_map.assign(18, 39, 'C');
+    m_map.assign(11, 35, 'F');
+    m_map.assign(24, 30, 'A');
+    m_map.assign(1, 28, 'D');
+    m_map.assign(4, 32, 'C');
+    m_map.assign(20, 39, 'D');
+    m_map.assign(20, 35, 'C');
+    m_map.assign(12, 14, 'C');
+    m_map.assign(11, 15, 'F');
+    ASSERT_FALSE(HasDoubles(m_map.getMap()));
+}
+
+TEST_F(IntervalMapTest, FailedRandom3)
+{
+    m_map.assign(8, 25, 'E');
+    m_map.assign(17, 24, 'B');
+    m_map.assign(5, 10, 'B');
+    m_map.assign(15, 20, 'A');
+    m_map.assign(23, 23, 'C');
+    m_map.assign(16, 26, 'A');
+    m_map.assign(16, 29, 'A');
+    m_map.assign(24, 37, 'A');
+    m_map.assign(15, 22, 'E');
+    m_map.assign(7, 8, 'F');
+    ASSERT_FALSE(HasDoubles(m_map.getMap()));
+}
+
+TEST_F(IntervalMapTest, FailedRandom4)
+{
+    m_map.assign(7, 26, 'F');
+    ShowMapFromTill(m_map,0,41);
+    m_map.assign(20, 36, 'C');
+    ShowMapFromTill(m_map,0,41);
+    m_map.assign(3, 23, 'C');
+    ShowMapFromTill(m_map,0,41);
+    m_map.assign(36, 39, 'A');
+    ShowMapFromTill(m_map,0,41);
+    m_map.assign(36, 38, 'C');
+    ShowMapFromTill(m_map,0,41);
+    m_map.assign(20, 22, 'C');
+    ShowMapFromTill(m_map,0,41);
+    m_map.assign(21, 26, 'A');
+    ASSERT_FALSE(HasDoubles(m_map.getMap()));
+}
+
 /* Just random tests */
 TEST_F(IntervalMapTest, DISABLED_Random)
 {
     std::srand(std::time(0));
     int max = 40;
     int valMax = 'G' - 'A';
+    struct Range
+    {
+        Range(Key begin, Key end, Value val) : begin(begin), end(end), val(val) {}
+        Key begin;
+        Key end;
+        Value val;
+    };
+    std::vector<Range> ranges;
     for(size_t i=0; i<std::rand()%max; i++)
     {
         auto begin = std::rand() % max;
@@ -386,11 +460,23 @@ TEST_F(IntervalMapTest, DISABLED_Random)
         if (begin > end)
             std::swap(begin, end);
         auto newVal = 'A' + std::rand() % valMax;
+        ranges.push_back(Range(begin, end, newVal));
         std::cout << std::endl << i+1 << ". begin : " << begin << ", end : " << end << ", newVal : " << (char)newVal << std::endl;
         m_map.assign(begin, end, newVal);
         ShowMapFromTill(m_map, 0, 41);
     }
-    ASSERT_FALSE(HasDoubles(m_map.getMap()));
+    auto doubles = HasDoubles(m_map.getMap());
+    if (doubles == true)
+    {
+        std::cout << "TEST_F(IntervalMapTest, FailedRandom)" << std::endl << "{" << std::endl;
+        for(const auto& range : ranges)
+        {
+            std::cout << "    m_map.assign(" << (int)range.begin << ", " << (int)range.end << ", '" << (char)range.val << "');" << std::endl; 
+        }
+        std::cout << "    ASSERT_FALSE(HasDoubles(m_map.getMap()));" << std::endl;
+        std::cout << "}" << std::endl;
+    }
+    ASSERT_FALSE(doubles);
 }
 
 /* It should have tested full range filling, but it is impossible using this scheme [a,b) */
