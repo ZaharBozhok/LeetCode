@@ -14,7 +14,7 @@ void RangeEqualsTo(const TMap &map,
     }
 }
 
-const char initialValue = 'A';
+const char initialValue = '-';
 
 class IntervalMapTest : public ::testing::Test
 {
@@ -129,6 +129,41 @@ TEST_F(IntervalMapTest, FullElimination)
 {
     m_map.assign(10, 20, '*');
     m_map.assign(9, 21, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9 ,initialValue);
+    RangeEqualsTo(m_map, 9, 21,'X');
+    RangeEqualsTo(m_map, 21, std::numeric_limits<Key>::max(),initialValue);
+}
+
+TEST_F(IntervalMapTest, Neighbours)
+{
+    m_map.assign(10, 15, 'L');
+    m_map.assign(20, 25, 'R');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, 10, 15, 'L');
+    RangeEqualsTo(m_map, 15, 19, initialValue);
+    RangeEqualsTo(m_map, 20, 25, 'R');
+    RangeEqualsTo(m_map, 25, std::numeric_limits<Key>::max(),initialValue);
+}
+
+TEST_F(IntervalMapTest, CloseNeighbours)
+{
+    m_map.assign(10, 15, 'L');
+    m_map.assign(15, 20, 'R');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, 10, 15, 'L');
+    RangeEqualsTo(m_map, 15, 20, 'R');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+}
+
+TEST_F(IntervalMapTest, DISABLED_FullElimination)
+{
+    m_map.assign(10, 14, 'A');
+    m_map.assign(15, 19, 'B');
+    m_map.assign(20, 24, 'C');
+    m_map.assign(25, 29, 'D');
 
     RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9 ,initialValue);
     RangeEqualsTo(m_map, 9, 21,'X');

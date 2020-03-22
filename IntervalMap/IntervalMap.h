@@ -48,17 +48,24 @@ public:
     {
       return;
     }
-    auto left = m_map.lower_bound(keyBegin);
-    
-    if (left != m_map.cbegin())
+    auto right = m_map.upper_bound(keyEnd);
+    V prevValue = V();
+    /* extracting previous value */
     {
-      left--;
+      auto r = right; r--;
+      prevValue = r->second;
     }
-    if (left!= m_map.cend())
+    /* eliminate between */
     {
-      auto leftPrev = left->second;
-      m_map[keyBegin] = val;
-      m_map[keyEnd] = leftPrev;
+      auto l = m_map.upper_bound(keyBegin);
+      m_map.erase(l, right);
+    }
+    /* inserting new value */
+    m_map[keyBegin] = val;
+    /* continuing previous value */
+    if (val != prevValue)
+    {
+      m_map[keyEnd] = prevValue;
     }
   }
 
