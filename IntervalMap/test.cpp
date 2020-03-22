@@ -348,6 +348,36 @@ TEST_F(IntervalMapTest, MergingRight)
     AssertUnderlyingMapSizeEq(m_map, 3);
 }
 
+TEST_F(IntervalMapTest, MergingNeighboursLeft)
+{
+    m_map.assign(15, 20, '*');
+    m_map.assign(10, 15, '*');
+
+    RangeEqualsTo(m_map, 0, 10, initialValue);
+    RangeEqualsTo(m_map, 10, 20, '*');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 3);
+}
+
+TEST_F(IntervalMapTest, MergingNeighboursRight)
+{
+    m_map.assign(10, 15, '*');
+    m_map.assign(15, 20, '*');
+
+    RangeEqualsTo(m_map, 0, 10, initialValue);
+    RangeEqualsTo(m_map, 10, 20, '*');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 3);
+}
+
+TEST_F(IntervalMapTest, DISABLED_MergingAndCollapsingNeighboursLeft)
+{
+}
+
+TEST_F(IntervalMapTest, DISABLED_MergingAndCollapsingNeighboursRight)
+{
+}
+
 TEST(HasDoubles, TrueOnDoublesFound)
 {
     std::map<int, char> m;
@@ -386,7 +416,13 @@ TEST_F(IntervalMapTest, FailedRandom1)
     m_map.assign(7, 23, 'E');
     m_map.assign(16, 23, 'B');
     m_map.assign(5, 34, 'B');
+
     ASSERT_FALSE(HasDoubles(m_map.getMap()));
+    AssertUnderlyingMapSizeEq(m_map, 3);
+
+    RangeEqualsTo(m_map, 0, 34, 'B');
+    RangeEqualsTo(m_map, 34, 39, 'A');
+    RangeEqualsTo(m_map, 39, std::numeric_limits<Key>::max(), initialValue);
 }
 
 TEST_F(IntervalMapTest, FailedRandom2)
@@ -424,17 +460,11 @@ TEST_F(IntervalMapTest, FailedRandom3)
 TEST_F(IntervalMapTest, FailedRandom4)
 {
     m_map.assign(7, 26, 'F');
-    ShowMapFromTill(m_map,0,41);
     m_map.assign(20, 36, 'C');
-    ShowMapFromTill(m_map,0,41);
     m_map.assign(3, 23, 'C');
-    ShowMapFromTill(m_map,0,41);
     m_map.assign(36, 39, 'A');
-    ShowMapFromTill(m_map,0,41);
     m_map.assign(36, 38, 'C');
-    ShowMapFromTill(m_map,0,41);
     m_map.assign(20, 22, 'C');
-    ShowMapFromTill(m_map,0,41);
     m_map.assign(21, 26, 'A');
     ASSERT_FALSE(HasDoubles(m_map.getMap()));
 }

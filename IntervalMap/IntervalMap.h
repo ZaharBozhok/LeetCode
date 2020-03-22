@@ -68,6 +68,22 @@ public:
     {
       return;
     }
+    /* RightMerge check */
+    if (left != m_map.cbegin())
+    {
+      auto l = left;
+      l--;
+      if (l != m_map.cbegin() && l->first == keyBegin)
+      {
+        auto l1 = l;
+        l1--;
+        if (l1->second == val)
+        {
+          prevLeftValue = l1->second;
+          left = l;
+        }
+      }
+    }
     /* eliminate between */
     {
       m_map.erase(left, right);
