@@ -1,6 +1,7 @@
 #include "IntervalMap.h"
 #include <gtest/gtest.h>
 #include <limits>
+#include <iomanip>
 
 template <class TMap>
 void RangeEqualsTo(const TMap &map,
@@ -12,6 +13,22 @@ void RangeEqualsTo(const TMap &map,
     {
         ASSERT_EQ(map[i], val) << "i = " << (int)i;
     }
+}
+
+template <class TMap>
+void ShowUnderlyingMap(const TMap& map)
+{
+    for(const auto& elem : map)
+    {
+        std::cout << "[" << std::setw(3) << (int)elem.first << "]";
+        std::cout << " = " << elem.second << std::endl;
+    }
+}
+
+template <class TMap>
+void AssertUnderlyingMapSizeEq(const TMap& map, const size_t& size)
+{
+    ASSERT_EQ(map.getMap().size(), size);
 }
 
 const char initialValue = '-';
@@ -29,6 +46,8 @@ protected:
         if (::testing::Test::HasFailure())
         {
             ShowMapFromTill(m_map, std::numeric_limits<Key>::min(), 41);
+            std::cout << "Underlying map : " << std::endl;
+            ShowUnderlyingMap(m_map.getMap());
         }
     }
     IntervalMap<uint8_t, char> m_map;
@@ -42,6 +61,7 @@ TEST_F(IntervalMapTest, FilledWithInitialValue)
                   std::numeric_limits<Key>::min(),
                   std::numeric_limits<Key>::max(),
                   initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 1);
 }
 
 TEST_F(IntervalMapTest, SqueezeThrough)
@@ -62,6 +82,7 @@ TEST_F(IntervalMapTest, SqueezeThrough)
                   insertEnd,
                   std::numeric_limits<Key>::max(),
                   initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 3);        
 }
 
 TEST_F(IntervalMapTest, SqueezeThroughLeft)
@@ -78,6 +99,8 @@ TEST_F(IntervalMapTest, SqueezeThroughLeft)
                   insertEnd,
                   std::numeric_limits<Key>::max(),
                   initialValue);
+
+    AssertUnderlyingMapSizeEq(m_map, 2);
 }
 
 TEST_F(IntervalMapTest, SqueezeThroughRight)
@@ -94,6 +117,7 @@ TEST_F(IntervalMapTest, SqueezeThroughRight)
                   insertEnd,
                   std::numeric_limits<Key>::max(),
                   insertVal);
+    AssertUnderlyingMapSizeEq(m_map, 3);
 }
 
 TEST_F(IntervalMapTest, SqueezeThroughThrough)
@@ -106,6 +130,7 @@ TEST_F(IntervalMapTest, SqueezeThroughThrough)
     RangeEqualsTo(m_map, 13, 17,'X');
     RangeEqualsTo(m_map, 17, 20,'*');
     RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 5);
 }
 
 TEST_F(IntervalMapTest, ReversedParametersDoNothing)
@@ -116,6 +141,7 @@ TEST_F(IntervalMapTest, ReversedParametersDoNothing)
                   std::numeric_limits<Key>::min(),
                   std::numeric_limits<Key>::max(),
                   initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 1);
 }
 
 TEST_F(IntervalMapTest, InsertPoint)
@@ -123,8 +149,8 @@ TEST_F(IntervalMapTest, InsertPoint)
     Value insertVal = '*';
     m_map.assign(1, 2, insertVal);
     RangeEqualsTo(m_map, 1, 2, insertVal);
+    AssertUnderlyingMapSizeEq(m_map, 3);
 }
-
 
 TEST_F(IntervalMapTest, Neighbours)
 {
@@ -136,6 +162,7 @@ TEST_F(IntervalMapTest, Neighbours)
     RangeEqualsTo(m_map, 15, 19, initialValue);
     RangeEqualsTo(m_map, 20, 25, 'R');
     RangeEqualsTo(m_map, 25, std::numeric_limits<Key>::max(),initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 5);
 }
 
 TEST_F(IntervalMapTest, CloseNeighbours)
@@ -147,6 +174,7 @@ TEST_F(IntervalMapTest, CloseNeighbours)
     RangeEqualsTo(m_map, 10, 15, 'L');
     RangeEqualsTo(m_map, 15, 20, 'R');
     RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 4);
 }
 
 TEST_F(IntervalMapTest, FullElimination)
@@ -154,9 +182,10 @@ TEST_F(IntervalMapTest, FullElimination)
     m_map.assign(10, 20, '*');
     m_map.assign(9, 21, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9 ,initialValue);
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9, initialValue);
     RangeEqualsTo(m_map, 9, 21,'X');
-    RangeEqualsTo(m_map, 21, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, 21, std::numeric_limits<Key>::max(), initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 3);
 }
 
 TEST_F(IntervalMapTest, PreciseFullElimination)
@@ -167,6 +196,7 @@ TEST_F(IntervalMapTest, PreciseFullElimination)
     RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9 ,initialValue);
     RangeEqualsTo(m_map, 10, 20,'X');
     RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 3);
 }
 
 TEST_F(IntervalMapTest, PartialEliminationLeft)
@@ -178,6 +208,7 @@ TEST_F(IntervalMapTest, PartialEliminationLeft)
     RangeEqualsTo(m_map, 10, 15, '*');
     RangeEqualsTo(m_map, 15, 25,'X');
     RangeEqualsTo(m_map, 25, std::numeric_limits<Key>::max(),initialValue);   
+    AssertUnderlyingMapSizeEq(m_map, 4);
 }
 
 TEST_F(IntervalMapTest, PartialEliminationRight)
@@ -188,7 +219,38 @@ TEST_F(IntervalMapTest, PartialEliminationRight)
     RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 5 ,initialValue);
     RangeEqualsTo(m_map, 15, 20, '*');
     RangeEqualsTo(m_map, 5, 15,'X');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);   
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 4);
+}
+
+TEST_F(IntervalMapTest, PartialEliminationOfCloseNeighbours)
+{
+    m_map.assign(10, 20, '*');
+    m_map.assign(20, 30, '#');
+    m_map.assign(15, 25, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, 10, 15, '*');
+    RangeEqualsTo(m_map, 15, 25, 'X');
+    RangeEqualsTo(m_map, 25, 30, '#');
+    RangeEqualsTo(m_map, 30, std::numeric_limits<Key>::max(),initialValue);
+
+    AssertUnderlyingMapSizeEq(m_map, 5);
+}
+
+TEST_F(IntervalMapTest, PartialEliminationOfNeighbours)
+{
+    m_map.assign(10, 18, '*');
+    m_map.assign(22, 30, '#');
+    m_map.assign(15, 25, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, 10, 15, '*');
+    RangeEqualsTo(m_map, 15, 25, 'X');
+    RangeEqualsTo(m_map, 25, 30, '#');
+    RangeEqualsTo(m_map, 30, std::numeric_limits<Key>::max(),initialValue);
+
+    AssertUnderlyingMapSizeEq(m_map, 5);
 }
 
 TEST_F(IntervalMapTest, PreciseRampage)
@@ -203,6 +265,7 @@ TEST_F(IntervalMapTest, PreciseRampage)
     RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 5 ,initialValue);
     RangeEqualsTo(m_map, 5, 35, 'X');
     RangeEqualsTo(m_map, 35, std::numeric_limits<Key>::max(),initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 3);
 }
 
 TEST_F(IntervalMapTest, Rampage)
@@ -217,8 +280,22 @@ TEST_F(IntervalMapTest, Rampage)
     RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 4 ,initialValue);
     RangeEqualsTo(m_map, 4, 36, 'X');
     RangeEqualsTo(m_map, 36, std::numeric_limits<Key>::max(),initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 3);
 }
 
+TEST_F(IntervalMapTest, Absorption)
+{
+    m_map.assign(10, 20, initialValue);
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), std::numeric_limits<Key>::max(), initialValue);
+    ASSERT_EQ(m_map.getMap().size(), 1);
+}
+
+/* Just random tests */
+TEST_F(IntervalMapTest, DISABLED_Random)
+{
+    m_map.assign(0,1,'1');
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), std::numeric_limits<Key>::max() ,initialValue);
+}
 
 /* It should have tested full range filling, but it is impossible using this scheme [a,b) */
 TEST_F(IntervalMapTest, DISABLED_FullBomb)

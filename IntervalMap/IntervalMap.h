@@ -25,6 +25,8 @@ void ShowMapFromTill(const Map& map, const typename Map::kType& keyBegin, const 
 template <class K, class V>
 class IntervalMap
 {
+private:
+  std::map<K, V> m_map;
 public:
   using kType = K;
   using vType = V;
@@ -68,8 +70,9 @@ public:
       m_map[keyEnd] = prevValue;
     }
   }
-
-private:
-  std::map<K, V> m_map;
+  const decltype(m_map)& getMap() const
+  {
+    return m_map;
+  }
 };
 #endif // INTERVALMAP_H
