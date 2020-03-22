@@ -169,6 +169,28 @@ TEST_F(IntervalMapTest, PreciseFullElimination)
     RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
 }
 
+TEST_F(IntervalMapTest, PartialEliminationLeft)
+{
+    m_map.assign(10, 20, '*');
+    m_map.assign(15, 25, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, 10, 15, '*');
+    RangeEqualsTo(m_map, 15, 25,'X');
+    RangeEqualsTo(m_map, 25, std::numeric_limits<Key>::max(),initialValue);   
+}
+
+TEST_F(IntervalMapTest, PartialEliminationRight)
+{
+    m_map.assign(10, 20, '*');
+    m_map.assign(5, 15, 'X');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 5 ,initialValue);
+    RangeEqualsTo(m_map, 15, 20, '*');
+    RangeEqualsTo(m_map, 5, 15,'X');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);   
+}
+
 TEST_F(IntervalMapTest, PreciseRampage)
 {
     m_map.assign(5, 10, 'A');
@@ -196,6 +218,7 @@ TEST_F(IntervalMapTest, Rampage)
     RangeEqualsTo(m_map, 4, 36, 'X');
     RangeEqualsTo(m_map, 36, std::numeric_limits<Key>::max(),initialValue);
 }
+
 
 /* It should have tested full range filling, but it is impossible using this scheme [a,b) */
 TEST_F(IntervalMapTest, DISABLED_FullBomb)
