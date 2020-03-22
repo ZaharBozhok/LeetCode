@@ -290,6 +290,16 @@ TEST_F(IntervalMapTest, Absorption)
     ASSERT_EQ(m_map.getMap().size(), 1);
 }
 
+TEST_F(IntervalMapTest, AbsorptionInSmallerRange)
+{
+    m_map.assign(10, 30, '*');
+    m_map.assign(15, 25, '*');
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10, initialValue);
+    RangeEqualsTo(m_map, 10, 30, '*');
+    RangeEqualsTo(m_map, 30, std::numeric_limits<Key>::max(), initialValue);
+    ASSERT_EQ(m_map.getMap().size(), 3);
+}
+
 /* Just random tests */
 TEST_F(IntervalMapTest, DISABLED_Random)
 {
