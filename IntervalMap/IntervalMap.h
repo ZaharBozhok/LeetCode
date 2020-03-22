@@ -51,16 +51,22 @@ public:
       return;
     }
     auto right = m_map.upper_bound(keyEnd);
+    auto left = m_map.upper_bound(keyBegin);
     V prevValue = V();
     /* extracting previous value */
     {
-      auto r = right; r--;
+      auto r = right; 
+      r--;
       prevValue = r->second;
+    }
+    /* prevent inserting range of values that are already in there */
+    if (right == left && val == prevValue)
+    {
+      return;
     }
     /* eliminate between */
     {
-      auto l = m_map.upper_bound(keyBegin);
-      m_map.erase(l, right);
+      m_map.erase(left, right);
     }
     /* inserting new value */
     m_map[keyBegin] = val;
