@@ -31,6 +31,22 @@ void AssertUnderlyingMapSizeEq(const TMap& map, const size_t& size)
     ASSERT_EQ(map.getMap().size(), size);
 }
 
+template <class TMap>
+bool HasDoubles(const TMap& map)
+{
+    auto it = map.cbegin();
+    auto val = it->second;
+    while(++it != map.cend())
+    {
+        if(val == it->second)
+        {
+            return true;
+        }
+        val = it->second;
+    }
+    return false;
+}
+
 const char initialValue = '-';
 
 class IntervalMapTest : public ::testing::Test
@@ -50,7 +66,7 @@ protected:
             ShowUnderlyingMap(m_map.getMap());
         }
     }
-    IntervalMap<uint8_t, char> m_map;
+    IntervalMap<uint16_t, char> m_map;
     using Key = decltype(m_map)::kType;
     using Value = decltype(m_map)::vType;
 };
@@ -150,6 +166,16 @@ TEST_F(IntervalMapTest, InsertPoint)
     m_map.assign(1, 2, insertVal);
     RangeEqualsTo(m_map, 1, 2, insertVal);
     AssertUnderlyingMapSizeEq(m_map, 3);
+}
+
+TEST_F(IntervalMapTest, InsertEmptyPoint)
+{
+    m_map.assign(2, 2, '*');
+    RangeEqualsTo(m_map,
+                  std::numeric_limits<Key>::min(),
+                  std::numeric_limits<Key>::max(),
+                  initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 1);
 }
 
 TEST_F(IntervalMapTest, Neighbours)
@@ -287,7 +313,7 @@ TEST_F(IntervalMapTest, Absorption)
 {
     m_map.assign(10, 20, initialValue);
     RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), std::numeric_limits<Key>::max(), initialValue);
-    ASSERT_EQ(m_map.getMap().size(), 1);
+    AssertUnderlyingMapSizeEq(m_map, 1);
 }
 
 TEST_F(IntervalMapTest, AbsorptionInSmallerRange)
@@ -297,14 +323,74 @@ TEST_F(IntervalMapTest, AbsorptionInSmallerRange)
     RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10, initialValue);
     RangeEqualsTo(m_map, 10, 30, '*');
     RangeEqualsTo(m_map, 30, std::numeric_limits<Key>::max(), initialValue);
-    ASSERT_EQ(m_map.getMap().size(), 3);
+    AssertUnderlyingMapSizeEq(m_map, 3);
 }
 
+TEST_F(IntervalMapTest, MergingLeft)
+{
+    m_map.assign(15, 20, '*');
+    m_map.assign(10, 17, '*');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10, initialValue);
+    RangeEqualsTo(m_map, 10, 20, '*');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 3);
+}
+
+TEST_F(IntervalMapTest, MergingRight)
+{
+    m_map.assign(10, 17, '*');
+    m_map.assign(15, 20, '*');
+
+    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10, initialValue);
+    RangeEqualsTo(m_map, 10, 20, '*');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    AssertUnderlyingMapSizeEq(m_map, 3);
+}
+
+TEST(HasDoubles, TrueOnDoublesFound)
+{
+    std::map<int, char> m;
+    m[1] = 'a';
+    m[2] = 'b';
+    m[3] = 'c';
+    m[4] = 'b';
+    m[5] = 'd';
+    m[6] = 'd';
+    ASSERT_TRUE(HasDoubles(m));
+}
+
+TEST(HasDoubles, FalseOnNoDoubles)
+{
+    std::map<int, char> m;
+    m[1] = 'a';
+    m[2] = 'b';
+    m[3] = 'c';
+    m[4] = 'b';
+    m[5] = 'd';
+    ASSERT_FALSE(HasDoubles(m));
+}
+
+#include <cstdlib>
+#include <ctime>
 /* Just random tests */
 TEST_F(IntervalMapTest, DISABLED_Random)
 {
-    m_map.assign(0,1,'1');
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), std::numeric_limits<Key>::max() ,initialValue);
+    std::srand(std::time(0));
+    int max = 40;
+    int valMax = 'G' - 'A';
+    for(size_t i=0; i<std::rand()%max; i++)
+    {
+        auto begin = std::rand() % max;
+        auto end = std::rand() % max;
+        if (begin > end)
+            std::swap(begin, end);
+        auto newVal = 'A' + std::rand() % valMax;
+        std::cout << std::endl << i+1 << ". begin : " << begin << ", end : " << end << ", newVal : " << (char)newVal << std::endl;
+        m_map.assign(begin, end, newVal);
+        ShowMapFromTill(m_map, 0, 41);
+    }
+    ASSERT_FALSE(HasDoubles(m_map.getMap()));
 }
 
 /* It should have tested full range filling, but it is impossible using this scheme [a,b) */

@@ -46,21 +46,25 @@ public:
 
   void assign(K const &keyBegin, K const &keyEnd, V const &val)
   {
-    if(keyBegin > keyEnd)
+    if(keyBegin >= keyEnd)
     {
       return;
     }
     auto right = m_map.upper_bound(keyEnd);
     auto left = m_map.upper_bound(keyBegin);
-    V prevValue = V();
-    /* extracting previous value */
+    V prevRightValue = V();
+    V prevLeftValue = V();
+    /* extracting previous values */
     {
       auto r = right; 
+      auto l = left;
       r--;
-      prevValue = r->second;
+      l--;
+      prevRightValue = r->second;
+      prevLeftValue = l->second;
     }
     /* prevent inserting range of values that are already in there */
-    if (right == left && val == prevValue)
+    if (right == left && val == prevRightValue)
     {
       return;
     }
@@ -68,12 +72,16 @@ public:
     {
       m_map.erase(left, right);
     }
-    /* inserting new value */
-    m_map[keyBegin] = val;
-    /* continuing previous value */
-    if (val != prevValue)
+    /* check if new value is not old */
+    if (prevLeftValue != val)
     {
-      m_map[keyEnd] = prevValue;
+    /* inserting new value */
+      m_map[keyBegin] = val;
+    }
+    /* continuing previous value */
+    if (val != prevRightValue)
+    {
+      m_map[keyEnd] = prevRightValue;
     }
   }
   const decltype(m_map)& getMap() const
