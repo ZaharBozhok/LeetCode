@@ -46,17 +46,15 @@ public:
       prevRightValue = r->second;
       prevLeftValue = l->second;
     }
-    /* prevent inserting range of values that are already in there */
-    if (right == left && val == prevRightValue)
+    if (right == left && val == prevRightValue) /* prevent inserting range of values that are already in there */
     {
       return;
     }
-    /* RightMerge check */
-    if (left != m_map.cbegin())
+    if (left != m_map.cbegin()) /* RightMerge check */
     {
       auto l = left;
       l--;
-      if (l != m_map.cbegin() && l->first == keyBegin)
+      if (l != m_map.cbegin() && l->first == keyBegin) /* if and only if is side by side with same value*/
       {
         auto l1 = l;
         l1--;
@@ -67,18 +65,12 @@ public:
         }
       }
     }
-    /* eliminate between */
+    m_map.erase(left, right); /* "eat" values between */
+    if (prevLeftValue != val) /* check if new value is not old */
     {
-      m_map.erase(left, right);
+      m_map[keyBegin] = val; /* inserting new value */
     }
-    /* check if new value is not old */
-    if (prevLeftValue != val)
-    {
-    /* inserting new value */
-      m_map[keyBegin] = val;
-    }
-    /* continuing previous value */
-    if (val != prevRightValue)
+    if (val != prevRightValue) /* continuing previous value */
     {
       m_map[keyEnd] = prevRightValue;
     }
