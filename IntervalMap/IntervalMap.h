@@ -19,7 +19,7 @@ public:
   void assign(K const &keyBegin, K const &keyEnd, V const &val)
   {
     auto eq = [](const auto& t1, const auto& t2) -> bool {return (!(t1 < t2) && !(t2 < t1));};
-    if (!(keyEnd > keyBegin)) return;
+    if (keyEnd < keyBegin || eq(keyEnd, keyBegin)) return;
     auto right = m_map.upper_bound(keyEnd);
     auto left = m_map.upper_bound(keyBegin);
     
