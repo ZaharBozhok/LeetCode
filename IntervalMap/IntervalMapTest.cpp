@@ -433,7 +433,7 @@ TEST_F(IntervalMapTest, Random4)
 TEST_F(IntervalMapTest, Random)
 {
     std::srand(std::time(0));
-    int max = (int)MAX();
+    int max = (int)MAX() - 20;
     int valMax = 'Z' - 'A';
     struct Range
     {
