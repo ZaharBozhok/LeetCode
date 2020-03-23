@@ -6,6 +6,8 @@
 #include <ctime>
 #include <sstream>
 
+/* TODO: extract to IntervalMapUtils */
+
 template <class TMap>
 void RangeEqualsTo(const TMap &map,
                    const typename TMap::kType &begin,
@@ -82,6 +84,7 @@ bool MapEqSequence(const TMap& map, const char& ch)
     return MapEqSequence(map, std::string("") + ch);
 }
 
+/* TODO: extract to IntervalMapUtilsTests */
 
 TEST(MapEqSequence, FalseOnDifferentSequencesSizes)
 {
