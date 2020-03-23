@@ -1,11 +1,11 @@
 #include "IntervalMap.h"
-#include <gtest/gtest.h>
-#include <limits>
-#include <iomanip>
+#include "IntervalMapTestUtils.h"
 #include <cstdlib>
 #include <ctime>
+#include <gtest/gtest.h>
+#include <iomanip>
+#include <limits>
 #include <sstream>
-#include "IntervalMapTestUtils.h"
 
 const char initialValue = '-';
 #define initialValueM "-"
@@ -23,60 +23,40 @@ protected:
         ASSERT_FALSE(HasDoubles(m_map.getMap()));
         if (::testing::Test::HasFailure())
         {
-            ShowMapFromTill(m_map, std::numeric_limits<Key>::min(), 41);
+            ShowMapFromTill(m_map, MIN(), MAX());
             std::cout << "Underlying map : " << std::endl;
             ShowUnderlyingMap(m_map.getMap());
         }
     }
-    interval_map<uint8_t, char> m_map;
+    interval_map<TestNumeric, char> m_map;
     using Key = decltype(m_map)::kType;
     using Value = decltype(m_map)::vType;
+    Key MIN() const { return std::numeric_limits<Key>::min(); }
+    Key MAX() const { return std::numeric_limits<Key>::max(); }
 };
 
 TEST_F(IntervalMapTest, FilledWithInitialValue)
 {
-    RangeEqualsTo(m_map,
-                  std::numeric_limits<Key>::min(),
-                  std::numeric_limits<Key>::max(),
-                  initialValue);
+    RangeEqualsTo(m_map, MIN(), MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValue));
 }
 
 TEST_F(IntervalMapTest, SqueezeThrough)
 {
-    const Key insertBegin = 10, insertEnd = 20;
-    Value insertVal = '*';
-    m_map.assign(insertBegin, insertEnd, insertVal);
+    m_map.assign(10, 20, '*');
 
-    RangeEqualsTo(m_map,
-                  std::numeric_limits<Key>::min(),
-                  insertBegin,
-                  initialValue);
-    RangeEqualsTo(m_map,
-                  insertBegin,
-                  insertEnd,
-                  insertVal);
-    RangeEqualsTo(m_map,
-                  insertEnd,
-                  std::numeric_limits<Key>::max(),
-                  initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
+    RangeEqualsTo(m_map, 10, 20, '*');
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
 TEST_F(IntervalMapTest, SqueezeThroughLeft)
 {
-    const Key insertBegin = std::numeric_limits<Key>::min(), insertEnd = 10;
-    Value insertVal = '*';
-    m_map.assign(insertBegin, insertEnd, insertVal);
+    m_map.assign(MIN(), 10, '*');
 
-    RangeEqualsTo(m_map,
-                  insertBegin,
-                  insertEnd,
-                  insertVal);
-    RangeEqualsTo(m_map,
-                  insertEnd,
-                  std::numeric_limits<Key>::max(),
-                  initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, '*');
+    RangeEqualsTo(m_map, 10, MAX(), initialValue);
 
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), "*" initialValueM));
 }
@@ -84,18 +64,10 @@ TEST_F(IntervalMapTest, SqueezeThroughLeft)
 /* Unfortunately useless */
 TEST_F(IntervalMapTest, SqueezeThroughRight)
 {
-    const Key insertBegin = 10, insertEnd = std::numeric_limits<Key>::max();
-    Value insertVal = '*';
-    m_map.assign(insertBegin, insertEnd, insertVal);
+    m_map.assign(10, MAX(), '*');
 
-    RangeEqualsTo(m_map,
-                  std::numeric_limits<Key>::min(),
-                  insertBegin,
-                  initialValue);
-    RangeEqualsTo(m_map,
-                  insertEnd,
-                  std::numeric_limits<Key>::max(),
-                  insertVal);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
+    RangeEqualsTo(m_map, 10, MAX(), '*');
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
@@ -104,11 +76,11 @@ TEST_F(IntervalMapTest, SqueezeThroughThrough)
     m_map.assign(10, 20, '*');
     m_map.assign(13, 17, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
-    RangeEqualsTo(m_map, 10, 13,'*');
-    RangeEqualsTo(m_map, 13, 17,'X');
-    RangeEqualsTo(m_map, 17, 20,'*');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
+    RangeEqualsTo(m_map, 10, 13, '*');
+    RangeEqualsTo(m_map, 13, 17, 'X');
+    RangeEqualsTo(m_map, 17, 20, '*');
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*X*" initialValueM));
 }
 
@@ -116,10 +88,8 @@ TEST_F(IntervalMapTest, ReversedParametersDoNothing)
 {
     m_map.assign(20, 10, '*');
 
-    RangeEqualsTo(m_map,
-                  std::numeric_limits<Key>::min(),
-                  std::numeric_limits<Key>::max(),
-                  initialValue);
+    RangeEqualsTo(m_map, MIN(), MAX(), initialValue);
+
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM));
 }
 
@@ -134,10 +104,7 @@ TEST_F(IntervalMapTest, InsertPoint)
 TEST_F(IntervalMapTest, InsertEmptyPoint)
 {
     m_map.assign(2, 2, '*');
-    RangeEqualsTo(m_map,
-                  std::numeric_limits<Key>::min(),
-                  std::numeric_limits<Key>::max(),
-                  initialValue);
+    RangeEqualsTo(m_map, MIN(), MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValue));
 }
 
@@ -146,11 +113,11 @@ TEST_F(IntervalMapTest, Neighbours)
     m_map.assign(10, 15, 'L');
     m_map.assign(20, 25, 'R');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
     RangeEqualsTo(m_map, 10, 15, 'L');
     RangeEqualsTo(m_map, 15, 19, initialValue);
     RangeEqualsTo(m_map, 20, 25, 'R');
-    RangeEqualsTo(m_map, 25, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, 25, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "L" initialValueM "R" initialValueM));
 }
 
@@ -159,10 +126,10 @@ TEST_F(IntervalMapTest, CloseNeighbours)
     m_map.assign(10, 15, 'L');
     m_map.assign(15, 20, 'R');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
     RangeEqualsTo(m_map, 10, 15, 'L');
     RangeEqualsTo(m_map, 15, 20, 'R');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "LR" initialValueM));
 }
 
@@ -171,9 +138,9 @@ TEST_F(IntervalMapTest, FullElimination)
     m_map.assign(10, 20, '*');
     m_map.assign(9, 21, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9, initialValue);
-    RangeEqualsTo(m_map, 9, 21,'X');
-    RangeEqualsTo(m_map, 21, std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, MIN(), 9, initialValue);
+    RangeEqualsTo(m_map, 9, 21, 'X');
+    RangeEqualsTo(m_map, 21, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "X" initialValueM));
 }
 
@@ -182,9 +149,9 @@ TEST_F(IntervalMapTest, PreciseFullElimination)
     m_map.assign(10, 20, '*');
     m_map.assign(10, 20, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 9 ,initialValue);
-    RangeEqualsTo(m_map, 10, 20,'X');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, MIN(), 9, initialValue);
+    RangeEqualsTo(m_map, 10, 20, 'X');
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "X" initialValueM));
 }
 
@@ -193,10 +160,10 @@ TEST_F(IntervalMapTest, PartialEliminationLeft)
     m_map.assign(10, 20, '*');
     m_map.assign(15, 25, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
     RangeEqualsTo(m_map, 10, 15, '*');
-    RangeEqualsTo(m_map, 15, 25,'X');
-    RangeEqualsTo(m_map, 25, std::numeric_limits<Key>::max(),initialValue);   
+    RangeEqualsTo(m_map, 15, 25, 'X');
+    RangeEqualsTo(m_map, 25, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*X" initialValueM));
 }
 
@@ -205,10 +172,10 @@ TEST_F(IntervalMapTest, PartialEliminationRight)
     m_map.assign(10, 20, '*');
     m_map.assign(5, 15, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 5 ,initialValue);
+    RangeEqualsTo(m_map, MIN(), 5, initialValue);
     RangeEqualsTo(m_map, 15, 20, '*');
-    RangeEqualsTo(m_map, 5, 15,'X');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, 5, 15, 'X');
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "X*" initialValueM));
 }
 
@@ -218,11 +185,11 @@ TEST_F(IntervalMapTest, PartialEliminationOfCloseNeighbours)
     m_map.assign(20, 30, '#');
     m_map.assign(15, 25, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
     RangeEqualsTo(m_map, 10, 15, '*');
     RangeEqualsTo(m_map, 15, 25, 'X');
     RangeEqualsTo(m_map, 25, 30, '#');
-    RangeEqualsTo(m_map, 30, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, 30, MAX(), initialValue);
 
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*X#" initialValueM));
 }
@@ -233,11 +200,11 @@ TEST_F(IntervalMapTest, PartialEliminationOfNeighbours)
     m_map.assign(22, 30, '#');
     m_map.assign(15, 25, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10 ,initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
     RangeEqualsTo(m_map, 10, 15, '*');
     RangeEqualsTo(m_map, 15, 25, 'X');
     RangeEqualsTo(m_map, 25, 30, '#');
-    RangeEqualsTo(m_map, 30, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, 30, MAX(), initialValue);
 
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*X#" initialValueM));
 }
@@ -251,9 +218,9 @@ TEST_F(IntervalMapTest, PreciseRampage)
     m_map.assign(30, 35, 'E');
     m_map.assign(5, 35, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 5 ,initialValue);
+    RangeEqualsTo(m_map, MIN(), 5, initialValue);
     RangeEqualsTo(m_map, 5, 35, 'X');
-    RangeEqualsTo(m_map, 35, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, 35, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "X" initialValueM));
 }
 
@@ -266,16 +233,16 @@ TEST_F(IntervalMapTest, Rampage)
     m_map.assign(30, 35, 'E');
     m_map.assign(4, 36, 'X');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 4 ,initialValue);
+    RangeEqualsTo(m_map, MIN(), 4, initialValue);
     RangeEqualsTo(m_map, 4, 36, 'X');
-    RangeEqualsTo(m_map, 36, std::numeric_limits<Key>::max(),initialValue);
+    RangeEqualsTo(m_map, 36, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "X" initialValueM));
 }
 
 TEST_F(IntervalMapTest, Absorption)
 {
     m_map.assign(10, 20, initialValue);
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, MIN(), MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValue));
 }
 
@@ -283,9 +250,9 @@ TEST_F(IntervalMapTest, AbsorptionInSmallerRange)
 {
     m_map.assign(10, 30, '*');
     m_map.assign(15, 25, '*');
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10, initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
     RangeEqualsTo(m_map, 10, 30, '*');
-    RangeEqualsTo(m_map, 30, std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, 30, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
@@ -294,9 +261,9 @@ TEST_F(IntervalMapTest, MergingLeft)
     m_map.assign(15, 20, '*');
     m_map.assign(10, 17, '*');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10, initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
     RangeEqualsTo(m_map, 10, 20, '*');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
@@ -305,9 +272,9 @@ TEST_F(IntervalMapTest, MergingRight)
     m_map.assign(10, 17, '*');
     m_map.assign(15, 20, '*');
 
-    RangeEqualsTo(m_map, std::numeric_limits<Key>::min(), 10, initialValue);
+    RangeEqualsTo(m_map, MIN(), 10, initialValue);
     RangeEqualsTo(m_map, 10, 20, '*');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
@@ -318,7 +285,7 @@ TEST_F(IntervalMapTest, MergingNeighboursLeft)
 
     RangeEqualsTo(m_map, 0, 10, initialValue);
     RangeEqualsTo(m_map, 10, 20, '*');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
@@ -329,7 +296,7 @@ TEST_F(IntervalMapTest, MergingNeighboursRight)
 
     RangeEqualsTo(m_map, 0, 10, initialValue);
     RangeEqualsTo(m_map, 10, 20, '*');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
@@ -341,7 +308,7 @@ TEST_F(IntervalMapTest, MergingAndCollapsingNeighboursLeft)
 
     RangeEqualsTo(m_map, 0, 5, initialValue);
     RangeEqualsTo(m_map, 5, 20, '*');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
@@ -353,7 +320,7 @@ TEST_F(IntervalMapTest, MergingAndCollapsingNeighboursRight)
 
     RangeEqualsTo(m_map, 0, 5, initialValue);
     RangeEqualsTo(m_map, 5, 20, '*');
-    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, 20, MAX(), initialValue);
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
@@ -372,9 +339,9 @@ TEST_F(IntervalMapTest, FailedRandom1)
 
     RangeEqualsTo(m_map, 0, 34, 'B');
     RangeEqualsTo(m_map, 34, 39, 'A');
-    RangeEqualsTo(m_map, 39, std::numeric_limits<Key>::max(), initialValue);
+    RangeEqualsTo(m_map, 39, MAX(), initialValue);
 
-    ASSERT_TRUE(MapEqSequence(m_map.getMap(),  "BA" initialValueM));
+    ASSERT_TRUE(MapEqSequence(m_map.getMap(), "BA" initialValueM));
 }
 
 TEST_F(IntervalMapTest, FailedRandom2)
@@ -433,7 +400,7 @@ TEST_F(IntervalMapTest, Random)
     };
     std::vector<Range> ranges;
     std::vector<std::string> outputs;
-    for(size_t i=0; i<std::rand()%max; i++)
+    for (size_t i = 0; i < std::rand() % max; i++)
     {
         std::stringstream ss;
         auto begin = std::rand() % max;
@@ -442,7 +409,8 @@ TEST_F(IntervalMapTest, Random)
             std::swap(begin, end);
         auto newVal = 'A' + std::rand() % valMax;
         ranges.push_back(Range(begin, end, newVal));
-        ss << std::endl << i+1 << ". begin : " << begin << ", end : " << end << ", newVal : " << (char)newVal << std::endl;
+        ss << std::endl
+           << i + 1 << ". begin : " << begin << ", end : " << end << ", newVal : " << (char)newVal << std::endl;
         m_map.assign(begin, end, newVal);
         ShowMapFromTill(m_map, 0, 41, ss);
         outputs.push_back(ss.str());
@@ -450,16 +418,18 @@ TEST_F(IntervalMapTest, Random)
     auto doubles = HasDoubles(m_map.getMap());
     if (doubles == true)
     {
-        for(const auto& output : outputs)
+        for (const auto &output : outputs)
         {
             std::cout << output;
         }
-        std::cout << "TEST_F(IntervalMapTest, FailedRandom)" << std::endl << "{" << std::endl;
-        for(const auto& range : ranges)
+        std::cout << "TEST_F(IntervalMapTest, FailedRandom)" << std::endl
+                  << "{" << std::endl;
+        for (const auto &range : ranges)
         {
-            std::cout << "    m_map.assign(" << (int)range.begin << ", " << (int)range.end << ", '" << (char)range.val << "');" << std::endl; 
+            std::cout << "    m_map.assign(" << range.begin << ", " << range.end << ", '" << range.val << "');" << std::endl;
         }
-        std::cout << std::endl << "}" << std::endl;
+        std::cout << std::endl
+                  << "}" << std::endl;
     }
     ASSERT_FALSE(doubles);
 }
@@ -468,10 +438,10 @@ TEST_F(IntervalMapTest, Random)
 TEST_F(IntervalMapTest, DISABLED_FullBomb)
 {
     Value insertVal = '*';
-    m_map.assign(std::numeric_limits<Key>::min(), std::numeric_limits<Key>::max(), insertVal);
+    m_map.assign(MIN(), MAX(), insertVal);
     RangeEqualsTo(m_map,
-                  std::numeric_limits<Key>::min(),
-                  std::numeric_limits<Key>::max(),
+                  MIN(),
+                  MAX(),
                   insertVal);
-    std::cout << m_map[std::numeric_limits<Key>::max()] << std::endl;
+    std::cout << m_map[MAX()] << std::endl;
 }
