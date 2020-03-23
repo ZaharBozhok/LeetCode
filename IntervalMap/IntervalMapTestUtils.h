@@ -4,6 +4,7 @@
 #include "IntervalMap.h"
 #include <gtest/gtest.h>
 
+/* utils shouldn't include gtest, so maybe rewrite on bool returning but...*/
 template <class TMap>
 void RangeEqualsTo(const TMap &map,
                    const typename TMap::kType &begin,
