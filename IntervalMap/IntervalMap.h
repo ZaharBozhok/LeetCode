@@ -18,10 +18,11 @@ public:
 
   void assign(K const &keyBegin, K const &keyEnd, V const &val)
   {
-    if (keyBegin >= keyEnd)
-      return;
+    auto eq = [](const auto& t1, const auto& t2) -> bool {return (!(t1 < t2) && !(t2 < t1));};
+    if (!(keyEnd > keyBegin)) return;
     auto right = m_map.upper_bound(keyEnd);
     auto left = m_map.upper_bound(keyBegin);
+    
     /* extracting previous values */
     V prevRightValue = std::prev(right)->second;
     V prevLeftValue = std::prev(left)->second;
@@ -29,11 +30,13 @@ public:
     /* prevent inserting range of values that are already in there */
     if (right == left && val == prevRightValue)
       return;
-
-    if (left != m_map.cbegin()) /* RightMerge check */
+    
+    /* RightMerge check */
+    if (left != m_map.cbegin()) 
     {
       auto l = std::prev(left);
-      if (l != m_map.cbegin() && l->first == keyBegin) /* if and only if is side by side with same value*/
+      /* if and only if is side by side with same value*/
+      if (l != m_map.cbegin() && eq(l->first, keyBegin)) 
       {
         auto l1 = std::prev(l);
         if (l1->second == val)
@@ -44,11 +47,14 @@ public:
       }
     }
     m_map.erase(left, right); /* "eat" values between */
-    if (prevLeftValue != val) /* check if new value is not old */
+    /* check if new value is not old */
+    if (prevLeftValue != val)
     {
-      m_map[keyBegin] = val; /* inserting new value */
+      /* inserting new value */
+      m_map[keyBegin] = val; 
     }
-    if (val != prevRightValue) /* continuing previous value */
+    /* continuing previous value */
+    if (val != prevRightValue) 
     {
       m_map[keyEnd] = prevRightValue;
     }

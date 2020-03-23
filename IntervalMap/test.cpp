@@ -62,7 +62,7 @@ bool MapEqSequence(const TMap& map, const TArr& arr)
     auto arrIt = arr.cbegin();
     /* sizes are equal, can safely iterate through one of them */
     /* `i` just a counter */
-    for(size_t i = 0; mapIt != map.cend(); mapIt++, arrIt++)
+    for(; mapIt != map.cend(); mapIt++, arrIt++)
     {
         if(mapIt->second != *arrIt)
         {
