@@ -62,13 +62,32 @@ public:
     /* check if new value is not old */
     if (!(prevLeftValue == val))
     {
-      /* inserting new value */
-      m_map[keyBeginCopy] = val; 
+      auto it = m_map.find(keyBeginCopy);
+      if (it == m_map.cend())
+      {
+        /* inserting new value */
+        m_map.insert({keyBeginCopy, val}); 
+      }
+      else
+      {
+        /* override */
+        it->second = val;
+      }
     }
     /* continuing previous value */
     if (!(prevRightValue == val)) 
     {
-      m_map[keyEndCopy] = prevRightValue;
+      auto it = m_map.find(keyEndCopy);
+      if (it == m_map.cend())
+      {
+        /* inserting new value */
+        m_map.insert({keyEndCopy, prevRightValue}); 
+      }
+      else
+      {
+        /* override */
+        it->second = prevRightValue;
+      }
     }
   }
 

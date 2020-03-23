@@ -140,7 +140,7 @@ public:
 class TestValue
 {
 public:
-    TestValue() : m_val(char()) {}
+    //TestValue() : m_val(char()) {}
     TestValue(const char& val) : m_val(val) {}
     operator char() const {return m_val;}
     bool operator==(const TestValue& val)
