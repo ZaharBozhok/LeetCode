@@ -2,6 +2,9 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include <iomanip>
+#include <cstdlib>
+#include <ctime>
+#include <sstream>
 
 template <class TMap>
 void RangeEqualsTo(const TMap &map,
@@ -16,13 +19,28 @@ void RangeEqualsTo(const TMap &map,
 }
 
 template <class TMap>
-void ShowUnderlyingMap(const TMap& map)
+void ShowUnderlyingMap(const TMap& map, std::ostream& stream = std::cout)
 {
     for(const auto& elem : map)
     {
-        std::cout << "[" << std::setw(3) << (int)elem.first << "]";
-        std::cout << " = " << elem.second << std::endl;
+        stream << "[" << std::setw(3) << (int)elem.first << "]";
+        stream << " = " << elem.second << std::endl;
     }
+}
+
+template<class Map>
+void ShowMapFromTill(const Map& map, const typename Map::kType& keyBegin, const typename Map::kType& keyEnd, std::ostream& stream = std::cout)
+{
+  for(auto i=keyBegin; i<keyEnd; i++)
+  {
+    stream << std::setw(2) << map[i] << ' ';
+  }
+  stream << std::endl;
+  for(auto i=keyBegin; i<keyEnd; i++)
+  {
+    stream << std::setw(2) << (int)i << ' ';
+  }
+  stream << std::endl;
 }
 
 template <class TMap>
@@ -210,7 +228,7 @@ TEST_F(IntervalMapTest, SqueezeThroughLeft)
 }
 
 /* Unfortunately useless */
-TEST_F(IntervalMapTest, DISABLED_SqueezeThroughRight)
+TEST_F(IntervalMapTest, SqueezeThroughRight)
 {
     const Key insertBegin = 10, insertEnd = std::numeric_limits<Key>::max();
     Value insertVal = '*';
@@ -461,16 +479,29 @@ TEST_F(IntervalMapTest, MergingNeighboursRight)
     ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
-TEST_F(IntervalMapTest, DISABLED_MergingAndCollapsingNeighboursLeft)
+TEST_F(IntervalMapTest, MergingAndCollapsingNeighboursLeft)
 {
+    m_map.assign(15, 20, '*');
+    m_map.assign(10, 15, 'V');
+    m_map.assign(5, 15, '*');
+
+    RangeEqualsTo(m_map, 0, 5, initialValue);
+    RangeEqualsTo(m_map, 5, 20, '*');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
 }
 
-TEST_F(IntervalMapTest, DISABLED_MergingAndCollapsingNeighboursRight)
+TEST_F(IntervalMapTest, MergingAndCollapsingNeighboursRight)
 {
-}
+    m_map.assign(5, 10, '*');
+    m_map.assign(10, 15, 'V');
+    m_map.assign(10, 20, '*');
 
-#include <cstdlib>
-#include <ctime>
+    RangeEqualsTo(m_map, 0, 5, initialValue);
+    RangeEqualsTo(m_map, 5, 20, '*');
+    RangeEqualsTo(m_map, 20, std::numeric_limits<Key>::max(), initialValue);
+    ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM "*" initialValueM));
+}
 
 TEST_F(IntervalMapTest, FailedRandom1)
 {
@@ -492,7 +523,7 @@ TEST_F(IntervalMapTest, FailedRandom1)
     ASSERT_TRUE(MapEqSequence(m_map.getMap(),  "BA" initialValueM));
 }
 
-TEST_F(IntervalMapTest, DISABLED_FailedRandom2)
+TEST_F(IntervalMapTest, FailedRandom2)
 {
     m_map.assign(38, 39, 'B');
     m_map.assign(12, 39, 'F');
@@ -508,7 +539,7 @@ TEST_F(IntervalMapTest, DISABLED_FailedRandom2)
     m_map.assign(11, 15, 'F');
 }
 
-TEST_F(IntervalMapTest, DISABLED_FailedRandom3)
+TEST_F(IntervalMapTest, FailedRandom3)
 {
     m_map.assign(8, 25, 'E');
     m_map.assign(17, 24, 'B');
@@ -522,7 +553,7 @@ TEST_F(IntervalMapTest, DISABLED_FailedRandom3)
     m_map.assign(7, 8, 'F');
 }
 
-TEST_F(IntervalMapTest, DISABLED_FailedRandom4)
+TEST_F(IntervalMapTest, FailedRandom4)
 {
     m_map.assign(7, 26, 'F');
     m_map.assign(20, 36, 'C');
@@ -533,8 +564,8 @@ TEST_F(IntervalMapTest, DISABLED_FailedRandom4)
     m_map.assign(21, 26, 'A');
 }
 
-/* Just random tests */
-TEST_F(IntervalMapTest, DISABLED_Random)
+/* Just random tests, shouldn't fail :) */
+TEST_F(IntervalMapTest, Random)
 {
     std::srand(std::time(0));
     int max = 40;
@@ -547,21 +578,28 @@ TEST_F(IntervalMapTest, DISABLED_Random)
         Value val;
     };
     std::vector<Range> ranges;
+    std::vector<std::string> outputs;
     for(size_t i=0; i<std::rand()%max; i++)
     {
+        std::stringstream ss;
         auto begin = std::rand() % max;
         auto end = std::rand() % max;
         if (begin > end)
             std::swap(begin, end);
         auto newVal = 'A' + std::rand() % valMax;
         ranges.push_back(Range(begin, end, newVal));
-        std::cout << std::endl << i+1 << ". begin : " << begin << ", end : " << end << ", newVal : " << (char)newVal << std::endl;
+        ss << std::endl << i+1 << ". begin : " << begin << ", end : " << end << ", newVal : " << (char)newVal << std::endl;
         m_map.assign(begin, end, newVal);
-        ShowMapFromTill(m_map, 0, 41);
+        ShowMapFromTill(m_map, 0, 41, ss);
+        outputs.push_back(ss.str());
     }
     auto doubles = HasDoubles(m_map.getMap());
     if (doubles == true)
     {
+        for(const auto& output : outputs)
+        {
+            std::cout << output;
+        }
         std::cout << "TEST_F(IntervalMapTest, FailedRandom)" << std::endl << "{" << std::endl;
         for(const auto& range : ranges)
         {
@@ -572,7 +610,7 @@ TEST_F(IntervalMapTest, DISABLED_Random)
     ASSERT_FALSE(doubles);
 }
 
-/* It should have tested full range filling, but it is impossible using this scheme [a,b) */
+/* It should have tested full range filling, but it is impossible using this filling [a,b) */
 TEST_F(IntervalMapTest, DISABLED_FullBomb)
 {
     Value insertVal = '*';
