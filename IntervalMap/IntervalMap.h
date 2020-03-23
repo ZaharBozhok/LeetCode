@@ -1,12 +1,11 @@
 #ifndef INTERVALMAP_H
 #define INTERVALMAP_H
 
-#include <iterator>
 #include <limits>
 #include <map>
 
 template <class K, class V>
-class IntervalMap
+class interval_map
 {
 private:
   std::map<K, V> m_map;
@@ -15,7 +14,7 @@ public:
   using vType = V;
 
 public:
-  IntervalMap(V const &val)
+  interval_map(V const &val)
   {
     m_map.insert(m_map.begin(),
                  std::make_pair(std::numeric_limits<K>::min(), val));

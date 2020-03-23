@@ -177,7 +177,7 @@ protected:
             ShowUnderlyingMap(m_map.getMap());
         }
     }
-    IntervalMap<uint8_t, char> m_map;
+    interval_map<uint8_t, char> m_map;
     using Key = decltype(m_map)::kType;
     using Value = decltype(m_map)::vType;
 };
