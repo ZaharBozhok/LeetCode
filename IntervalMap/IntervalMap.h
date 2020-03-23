@@ -18,11 +18,23 @@ public:
 
   void assign(K const &keyBegin, K const &keyEnd, V const &val)
   {
+    auto keyBeginCopy = keyBegin;
+    auto keyEndCopy = keyEnd;
+    auto right = m_map.upper_bound(keyEndCopy);
+    auto left = m_map.upper_bound(keyBeginCopy);
+    if (left == m_map.cbegin()) 
+    {
+      keyBeginCopy = std::numeric_limits<K>::min();
+      left++;
+    }
+    if (right == m_map.cbegin())
+    {
+      keyEndCopy = std::numeric_limits<K>::min();
+      right++;
+    }
     auto eq = [](const auto& t1, const auto& t2) -> bool {return (!(t1 < t2) && !(t2 < t1));};
-    if (keyEnd < keyBegin || eq(keyEnd, keyBegin)) return;
-    auto right = m_map.upper_bound(keyEnd);
-    auto left = m_map.upper_bound(keyBegin);
-    
+    if (keyEndCopy < keyBeginCopy || eq(keyEndCopy, keyBeginCopy)) return;
+
     /* extracting previous values */
     V prevRightValue = std::prev(right)->second;
     V prevLeftValue = std::prev(left)->second;
@@ -36,7 +48,7 @@ public:
     {
       auto l = std::prev(left);
       /* if and only if is side by side with same value*/
-      if (l != m_map.cbegin() && eq(l->first, keyBegin)) 
+      if (l != m_map.cbegin() && eq(l->first, keyBeginCopy)) 
       {
         auto l1 = std::prev(l);
         if (l1->second == val)
@@ -51,12 +63,12 @@ public:
     if (!(prevLeftValue == val))
     {
       /* inserting new value */
-      m_map[keyBegin] = val; 
+      m_map[keyBeginCopy] = val; 
     }
     /* continuing previous value */
     if (!(prevRightValue == val)) 
     {
-      m_map[keyEnd] = prevRightValue;
+      m_map[keyEndCopy] = prevRightValue;
     }
   }
 

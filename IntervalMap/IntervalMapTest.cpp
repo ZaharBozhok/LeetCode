@@ -35,6 +35,21 @@ protected:
     Key MAX() const { return std::numeric_limits<Key>::max(); }
 };
 
+TEST_F(IntervalMapTest, AccessBeginBelowTheMinKeyValue)
+{
+    m_map.assign(-10, 10, '*');
+    RangeEqualsTo(m_map, MIN(), 10, '*');
+    RangeEqualsTo(m_map, 10, MAX(), initialValue);
+    ASSERT_TRUE(MapEqSequence(m_map.getMap(), "*" initialValueM));
+}
+
+TEST_F(IntervalMapTest, AccessBeginAndEndBelowTheMinKeyValue)
+{
+    m_map.assign(-10, -5, '*');
+    RangeEqualsTo(m_map, MIN(), MAX(), initialValue);
+    ASSERT_TRUE(MapEqSequence(m_map.getMap(), initialValueM));
+}
+
 TEST_F(IntervalMapTest, FilledWithInitialValue)
 {
     RangeEqualsTo(m_map, MIN(), MAX(), initialValue);
