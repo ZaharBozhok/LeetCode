@@ -62,6 +62,7 @@ public:
     /* check if new value is not old */
     if (!(prevLeftValue == val))
     {
+      /* This should be rewritten  because adds execution time !!! */
       auto it = m_map.find(keyBeginCopy);
       if (it == m_map.cend())
       {
@@ -77,6 +78,7 @@ public:
     /* continuing previous value */
     if (!(prevRightValue == val)) 
     {
+      /* This should be rewritten  because adds execution time !!! */
       auto it = m_map.find(keyEndCopy);
       if (it == m_map.cend())
       {
