@@ -10,10 +10,6 @@ class interval_map
   std::map<K, V> m_map;
 
 public:
-  using kType = K;
-  using vType = V;
-
-public:
   interval_map(V const &val)
   {
     m_map.insert(m_map.begin(),
@@ -22,15 +18,17 @@ public:
 
   void assign(K const &keyBegin, K const &keyEnd, V const &val)
   {
-    if (keyBegin >= keyEnd) return;
+    if (keyBegin >= keyEnd)
+      return;
     auto right = m_map.upper_bound(keyEnd);
     auto left = m_map.upper_bound(keyBegin);
-    /* extracting previous values */    
+    /* extracting previous values */
     V prevRightValue = std::prev(right)->second;
     V prevLeftValue = std::prev(left)->second;
 
     /* prevent inserting range of values that are already in there */
-    if (right == left && val == prevRightValue) return;
+    if (right == left && val == prevRightValue)
+      return;
 
     if (left != m_map.cbegin()) /* RightMerge check */
     {
@@ -61,9 +59,13 @@ public:
     return (--m_map.upper_bound(key))->second;
   }
 
+public: /* for tests */
   const decltype(m_map) &getMap() const
   {
     return m_map;
   }
+
+  using kType = K;
+  using vType = V;
 };
 #endif // INTERVALMAP_H
