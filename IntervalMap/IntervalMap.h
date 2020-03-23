@@ -48,13 +48,13 @@ public:
     }
     m_map.erase(left, right); /* "eat" values between */
     /* check if new value is not old */
-    if (prevLeftValue != val)
+    if (!(prevLeftValue == val))
     {
       /* inserting new value */
       m_map[keyBegin] = val; 
     }
     /* continuing previous value */
-    if (val != prevRightValue) 
+    if (!(prevRightValue == val)) 
     {
       m_map[keyEnd] = prevRightValue;
     }

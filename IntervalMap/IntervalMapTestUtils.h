@@ -4,10 +4,10 @@
 #include "IntervalMap.h"
 #include <cstdlib>
 #include <ctime>
+#include <gtest/gtest.h>
 #include <iomanip>
 #include <limits>
 #include <sstream>
-#include <gtest/gtest.h>
 
 /* utils shouldn't include gtest, so maybe rewrite on bool returning but...*/
 template <class TMap>
@@ -33,7 +33,10 @@ void ShowUnderlyingMap(const TMap &map, std::ostream &stream = std::cout)
 }
 
 template <class Map>
-void ShowMapFromTill(const Map &map, const typename Map::kType &keyBegin, const typename Map::kType &keyEnd, std::ostream &stream = std::cout)
+void ShowMapFromTill(const Map &map,
+                     const typename Map::kType &keyBegin = std::numeric_limits<typename Map::kType>::min(),
+                     const typename Map::kType &keyEnd = std::numeric_limits<typename Map::kType>::max(),
+                     std::ostream &stream = std::cout)
 {
     for (int i = (int)keyBegin; i < (int)keyEnd; i++)
     {
@@ -95,39 +98,67 @@ bool HasDoubles(const TMap &map)
     return false;
 }
 
-const int TestNumericMin = 0;
-const int TestNumericMax = 40;
+const int TestKeyMin = 0;
+const int TestKeyMax = 41;
+
 /* To provide the only functional specified in task */
-class TestNumeric
+class TestKey
 {
 public:
-    TestNumeric(const int &val) : m_val(val) {}
+    TestKey() : m_val(int()) {}
+    TestKey(const int &val) : m_val(val) {}
     explicit operator int() const { return m_val; }
-    bool operator==(const TestNumeric &) = delete;
-    bool operator>(const TestNumeric &) = delete;
-    bool operator<(const TestNumeric &num) const
+    bool operator!=(const TestKey& val) = delete;
+    bool operator>(const TestKey& val) = delete;
+    bool operator>=(const TestKey& val) = delete;
+    bool operator<=(const TestKey& val) = delete;
+    bool operator<(const TestKey &num) const
     {
         return m_val < num.m_val;
     }
-    friend std::ostream &operator<<(std::ostream &os, const TestNumeric &num)
+    friend std::ostream &operator<<(std::ostream &os, const TestKey &num)
     {
         os << num.m_val;
         return os;
     }
-
 private:
     int m_val;
 };
 
 namespace std
 {
-    template <>
-    class numeric_limits<TestNumeric>
-    {
-    public:
-        static TestNumeric min() { return TestNumeric(TestNumericMin); };
-        static TestNumeric max() { return TestNumeric(TestNumericMax); };
-    };
+template <>
+class numeric_limits<TestKey>
+{
+public:
+    static TestKey min() { return TestKey(TestKeyMin); };
+    static TestKey max() { return TestKey(TestKeyMax); };
+};
 } // namespace std
+
+/* To provide the only functional specified in task */
+class TestValue
+{
+public:
+    TestValue() : m_val(char()) {}
+    TestValue(const char& val) : m_val(val) {}
+    operator char() const {return m_val;}
+    bool operator==(const TestValue& val)
+    {
+        return m_val == val.m_val;
+    }
+    bool operator!=(const TestValue& val) = delete;
+    bool operator>(const TestValue& val) = delete;
+    bool operator<(const TestValue& val) = delete;
+    bool operator>=(const TestValue& val) = delete;
+    bool operator<=(const TestValue& val) = delete;
+    friend std::ostream &operator<<(std::ostream &os, const TestValue &val)
+    {
+        os << val.m_val;
+        return os;
+    }
+private:
+    char m_val;
+};
 
 #endif //INTERVALMAPTESTTUILS_H
