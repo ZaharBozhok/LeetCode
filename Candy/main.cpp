@@ -111,119 +111,150 @@ Extremum getChange(const Direction &last, const Direction &curr)
     return Extremum::None;
 }
 
+int GetNthProgressionSum(int n)
+{
+    if (0 == n)
+        return 0;
+    if (1 == n)
+        return 1;
+    return (n + 1) * (n / 2.0);
+}
+
 void GetExtremums(std::vector<Data> &extremums, std::vector<int> &eliminates, const std::vector<int> &elements)
 {
-    std::unordered_map<int, std::vector<Data *>> risingMap;
     if (elements.empty())
         return;
+    int candies = 0;
     if (elements.size() == 1)
     {
         eliminates.push_back(0);
+        candies = 1;
         return;
     }
-    Data *lastMax = nullptr;
-    Data *lastMin = nullptr;
+    int lastMin = -1;
+    int lastMax = -1;
+    int mins = 0;
     Direction lastDirection = GetDirection(elements.at(0), elements.at(1));
-    if (lastDirection == Direction::Falling)
+    switch(lastDirection)
     {
-        extremums.push_back(Data(Extremum::Max, elements[0], 0));
-        lastMax = new Data(Extremum::Max, elements[0], 0);
-    }
-    else if (lastDirection == Direction::Rising)
-    {
-        extremums.push_back(Data(Extremum::Min, elements[0], 0));
-        lastMin = new Data(Extremum::Min, elements[0], 0);
-        auto it = risingMap.find(elements[0]);
-        if (it != risingMap.cend())
+        case Direction::Falling:
         {
-            it->second.push_back(lastMin);
+            extremums.push_back(Data(Extremum::Max, elements[0], 0));
+            lastMax = 0;
         }
-        else
+        break;
+        case Direction::Rising:
         {
-            risingMap.insert({elements[0], std::vector{lastMin}});
+            extremums.push_back(Data(Extremum::Min, elements[0], 0));
+            lastMin = 0;
+            mins++;
+            candies++;
         }
+        break;
+        case Direction::Plain:
+        {
+            eliminates.push_back(0);
+            candies++;
+        }
+        break;
     }
-    else if (lastDirection == Direction::Plain)
-    {
-        eliminates.push_back(0);
-    }
+    
     for (int i = 1; i < elements.size() - 1; i++)
     {
         auto direction = GetDirection(elements.at(i), elements.at(i + 1));
         switch (getChange(lastDirection, direction))
         {
-            case Extremum::Min:
+        case Extremum::Min:
+        {
+            extremums.push_back(Data(Extremum::Min, elements[i], i));
+            mins++;
+            auto &newMin = i;
+            if (lastMax != -1)
             {
-                extremums.push_back(Data(Extremum::Min, elements[i], i));
-                lastMin = new Data(Extremum::Min, elements[i], i);
-                if (lastMax)
-                    lastMin->left = lastMax;
-                auto it = risingMap.find(elements[i]);
-                if (it != risingMap.cend())
+                if (lastMin != -1)
                 {
-                    it->second.push_back(lastMin);
+                    auto leftSlopeLen = lastMax - lastMin;
+                    auto rightSlopeLen = newMin - lastMax;
+                    if (rightSlopeLen > leftSlopeLen)
+                    {
+                        leftSlopeLen--;
+                    }
+                    else
+                    {
+                        rightSlopeLen--;
+                    }
+                    auto candiesR = GetNthProgressionSum(rightSlopeLen + 1) - 1;
+                    auto candiesL = GetNthProgressionSum(leftSlopeLen + 1) - 1;
+                    candies += candiesR + candiesL;
                 }
                 else
                 {
-                    risingMap.insert({elements[i], std::vector{lastMin}});
+                    auto slope = newMin - lastMax;
+                    candies += GetNthProgressionSum(slope + 1) - 1;
                 }
             }
-            break;
+            lastMin = newMin;
+            lastMax = -1;
+            candies++;
+        }
+        break;
         case Extremum::Max:
+        {
             extremums.push_back(Data(Extremum::Max, elements[i], i));
-            lastMax = new Data(Extremum::Max, elements[i], i);
-            if (lastMin)
-                lastMin->right = lastMax;
-            break;
+            lastMax = i;
+        }
+        break;
         case Extremum::None:
             if (direction == Direction::Plain)
             {
-                lastMin = nullptr;
-                lastMax = nullptr;
+                if (lastMax != -1 && lastMin != -1)
+                {
+                    auto slope = lastMax - lastMin;
+                    candies += GetNthProgressionSum(slope + 1) - 1;
+                }
+                lastMax = -1;
+                lastMin = -1;
+                candies++;
                 eliminates.push_back(i);
             }
             break;
         }
-
         lastDirection = direction;
     }
-    if (lastDirection == Direction::Falling)
+    auto i = elements.size() - 1;
+    switch (lastDirection)
     {
-        extremums.push_back(Data(Extremum::Min, elements[elements.size() - 1], elements.size() - 1));
-        lastMin = new Data(Extremum::Min, elements[elements.size() - 1], elements.size() - 1);
-        if (lastMax)
-            lastMin->left = lastMax;
-        auto it = risingMap.find(elements[elements.size() - 1]);
-        if (it != risingMap.cend())
+        case Direction::Falling:
         {
-            it->second.push_back(lastMin);
+            extremums.push_back(Data(Extremum::Min, elements[i], i));
+            auto &newMin = i;
+            auto slope = newMin - lastMax;
+            candies += GetNthProgressionSum(slope);
         }
-        else
+        break;
+        case Direction::Rising:
         {
-            risingMap.insert({elements[elements.size() - 1], std::vector{lastMin}});
+            extremums.push_back(Data(Extremum::Max, elements[i], i));
+            auto &newMax = i;
+            auto slope = newMax - lastMin;
+            candies += GetNthProgressionSum(slope + 1) - 1;
         }
+        break;
+        case Direction::Plain:
+            eliminates.push_back(elements.size() - 1);
+            if (lastMax != -1)
+            {
+                auto slope = lastMax - lastMin;
+                candies += GetNthProgressionSum(slope + 1) - 1;
+            }
+            candies++;
+        break;
     }
-    else if (lastDirection == Direction::Rising)
-    {
-        extremums.push_back(Data(Extremum::Max, elements[elements.size() - 1], elements.size() - 1));
-        lastMax = new Data(Extremum::Max, elements[elements.size() - 1], elements.size() - 1);
-        if (lastMin)
-            lastMin->right = lastMax;
-    }
-    else if (lastDirection == Direction::Plain)
-    {
-        eliminates.push_back(elements.size() - 1);
-    }
-}
-
-int GetNthProgressionSum(int n)
-{
-    return (n + 1) * (n / 2.0);
 }
 
 int main()
 {
-    std::vector<int> ratings = {5, 5, 4, 6, 2, 2, 6, 7, 5, 6, 5, 6, 7, 7, 7, 6, 5, 4, 4, 4, 3, 6, 4, 2, 1, 4, 5, 6, 7, 0, 6, 6};
+    std::vector<int> ratings = {1,0,2,2};
     //std::vector<int> ratings = {5};
     std::vector<int> eliminates;
     std::vector<Data> extremums;
