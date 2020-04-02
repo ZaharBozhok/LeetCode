@@ -26,3 +26,4 @@ endif()
 
 add_subdirectory(IntervalMap)
 add_subdirectory(Candy)
+add_subdirectory(HappyNumber)
