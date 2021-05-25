@@ -1,0 +1,48 @@
+1. Run `make` then `./generate-decrypted.sh`
+It will immediately print solved text to show that I found key successfuly.
+Then it starts to calculate everything over again, I didn't calculate how much it takes, but on
+my Macbook M1 8 cores it does <7 mins.
+
+Possible improvements in speed
+
+I've quickly profiled last successful run and it showed that up to 70% of time it takes to 
+calculate hashes, so first thing is to rewrite 'hot' places in C or some of them even on assembly language.
+- Rewrite 'hot' places in digest calculation to C / ASM
+- Reduce number of allocations
+- If possible to allocate as much memory as I can know will be used and create object over created memory
+- Reduce all I/O operations (which really slows the process)
+- Make independent storage for hashes per thread in order not to spend time on synchronization i.e. run fully parallel
+- Number of threads should be equal to number of cores
+- Calculated hashes can be stored as numbers rather than strings (faster copy)
+- Decrypting all hashes also can be done using all cores
+- When decrypting it will be much better to load challange2.rst once to reduce filesystem operations
+
+Why shell script is so slow?
+- Lots of piping 
+- Lots of redundant process creating and destroying 
+
+Regarding second task which I had no time to do I can suppose following:
+
+My vision:
+Create directed graph data structure which can have multiple graphs outgoing from node, sth like this:
+
+main -----> func1
+ |      \
+ V       V
+func2 -> func3 -> malloc
+
+And if we dont have a chance to make a trip back to the same node, then this is a vaild sequence.
+
+How would I try to implement it?
+
+1. Build a graph and while building a graph mark all "leaf" nodes, which don't point
+to any other nodes (in order to skip them later)
+2. Build also an array of references to all nodes to easyliy iterate  (just by adding all nodes to a set)
+3. Going node by node from the set checking for circular 
+4. How to check circular? Iterating over all node from which we can go next, and storing already
+'visited' in a hashtable, and if we find sth in hash table - bad sequence, if we done on 'leaf' and no more
+possible ways to iterate - good sequence.
+5. I didn't this how to properly show possible orded of functions definition  
+
+P.S. If that matters I had an urgent task on my current job which took me 30 minutes :(
+And spent much time on lost reference :(
